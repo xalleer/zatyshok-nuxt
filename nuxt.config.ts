@@ -1,6 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
 export default defineNuxtConfig({
-  shadcn: {
+    routeRules: {
+        '/auth/**': {
+            appLayout: 'auth'
+        }
+    },
+    shadcn: {
     /**
      * Prefix for all the imported component.
      * @default "Ui"
