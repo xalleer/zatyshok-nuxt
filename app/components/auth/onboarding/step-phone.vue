@@ -20,7 +20,7 @@ const onSubmit = handleSubmit((values) => {
 </script>
 
 <template>
-  <form class="flex flex-col gap-6 mt-8" @submit.prevent="onSubmit">
+  <form class="flex flex-col gap-5 mt-6" @submit.prevent="onSubmit">
 
     <FormField v-slot="{ componentField }" name="phone">
       <FormItem>
@@ -37,17 +37,17 @@ const onSubmit = handleSubmit((values) => {
     </FormField>
 
     <FormField v-slot="{ value, handleChange }" name="acceptPolicy" type="checkbox">
-      <FormItem class="flex flex-row items-start gap-3">
+      <FormItem class="flex flex-row items-start gap-3 space-y-0">
         <FormControl>
           <Checkbox
-            :checked="value"
-            @update:checked="handleChange"
+            :modelValue="value"
+            @update:modelValue="handleChange"
           />
         </FormControl>
         <div class="flex flex-col gap-1">
-          <FormLabel class="cursor-pointer leading-snug">
+          <FormLabel class="cursor-pointer font-normal leading-snug">
             Я погоджуюсь з
-            <NuxtLink to="/privacy" class="text-primary underline underline-offset-2">
+            <NuxtLink to="/privacy" class="text-primary underline underline-offset-2 font-medium">
               Політикою конфіденційності
             </NuxtLink>
           </FormLabel>
@@ -60,12 +60,12 @@ const onSubmit = handleSubmit((values) => {
       Далі
     </Button>
 
-    <div class="text-center text-sm text-muted-foreground">
+    <p class="text-center text-sm text-muted-foreground">
       Вже є акаунт?
       <NuxtLink to="/auth/login" class="text-primary font-medium hover:underline">
         Увійти
       </NuxtLink>
-    </div>
+    </p>
 
   </form>
 </template>

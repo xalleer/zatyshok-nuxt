@@ -1,12 +1,10 @@
 <script setup lang="ts">
-// Десктопний layout: ліворуч форма, праворуч фото
-// На мобілці цей layout не рендериться для /auth/* — сторінка сама керує Sheet
+
 </script>
 
 <template>
   <div class="min-h-screen flex">
 
-    <!-- Ліва колонка — форма -->
     <div class="w-full md:w-2/5 md:flex md:flex-col">
       <header class="flex items-center justify-center border-b border-border py-4 px-6">
         <NuxtLink to="/" class="text-xl font-bold tracking-tight">
@@ -18,7 +16,6 @@
       </main>
     </div>
 
-    <!-- Права колонка — фото (тільки на десктопі) -->
     <div class="hidden md:block md:w-3/5 h-screen sticky top-0">
       <img
         src="~/assets/images/auth-background.png"

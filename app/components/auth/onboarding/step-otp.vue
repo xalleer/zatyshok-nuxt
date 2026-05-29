@@ -26,21 +26,18 @@ function onOtpComplete(value: string) {
 </script>
 
 <template>
-  <form class="flex flex-col gap-6 mt-8" @submit.prevent="onSubmit">
+  <form class="flex flex-col gap-5 mt-6" @submit.prevent="onSubmit">
 
     <p class="text-sm text-muted-foreground">
-      Ми надіслали код підтвердження на номер
+      Ми надіслали код на
       <span class="font-medium text-foreground">{{ phone }}</span>
     </p>
 
-    <FormField v-slot="{ field }" name="code">
-      <FormItem>
+    <FormField class="flex-1 w-full" v-slot="{ field }" name="code">
+      <FormItem class="flex-1 w-full">
         <FormLabel>Код підтвердження</FormLabel>
         <FormControl>
-          <InputOTP
-            :maxlength="4"
-            @complete="onOtpComplete"
-          >
+          <InputOTP class="w-full" :maxlength="4" @complete="onOtpComplete">
             <InputOTPGroup>
               <InputOTPSlot :index="0" />
               <InputOTPSlot :index="1" />
@@ -54,12 +51,7 @@ function onOtpComplete(value: string) {
     </FormField>
 
     <div class="flex gap-3">
-      <Button
-        type="button"
-        variant="outline"
-        class="flex-none"
-        @click="emit('back')"
-      >
+      <Button size="lg" type="button" variant="outline" @click="emit('back')">
         Назад
       </Button>
       <Button type="submit" size="lg" class="flex-1" :disabled="isSubmitting">

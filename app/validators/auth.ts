@@ -1,6 +1,7 @@
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 
+// ── Крок 1: телефон + згода ──────────────────────────────────────────────────
 export const phoneSchema = toTypedSchema(
   z.object({
     phone: z
@@ -18,7 +19,7 @@ export const phoneSchema = toTypedSchema(
   }),
 )
 
-
+// ── Крок 2: OTP ──────────────────────────────────────────────────────────────
 export const otpSchema = toTypedSchema(
   z.object({
     code: z
@@ -28,8 +29,3 @@ export const otpSchema = toTypedSchema(
   }),
 )
 
-
-
-export type PhoneFormValues = z.infer<
-  ReturnType<typeof phoneSchema['_type'] extends never ? never : any>
->

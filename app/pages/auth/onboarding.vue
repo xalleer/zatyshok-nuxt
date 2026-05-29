@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import {useIsMobile} from '~/utils/useIsMobile';
+
+
+const {isMobile} = useIsMobile()
 
 const currentStep = ref(1)
 const totalSteps = 3
 
-// Дані, що накопичуються між кроками
 const formData = reactive({
   phone: '',
   code: '',
@@ -19,8 +22,6 @@ const stepMeta = computed(() => ({
   3: { title: 'Профіль', subtitle: 'Розкажіть про себе' },
 }[currentStep.value] ?? { title: '', subtitle: '' }))
 
-// ── Обробники подій від дочірніх кроків ─────────────────────────────────────
-
 function onPhoneNext(phone: string) {
   formData.phone = phone
   currentStep.value = 2
@@ -34,8 +35,6 @@ function onOtpNext(code: string) {
 async function onProfileSubmit(values: { name: string; email?: string }) {
   formData.name = values.name
   formData.email = values.email ?? ''
-
-  // TODO: виклик API реєстрації
   console.log('Реєстрація завершена:', formData)
   await navigateTo('/')
 }
@@ -43,83 +42,65 @@ async function onProfileSubmit(values: { name: string; email?: string }) {
 function goBack() {
   if (currentStep.value > 1) currentStep.value--
 }
-
-// ── Контроль Sheet (тільки для мобільних) ────────────────────────────────────
-// Sheet відкривається одразу при завантаженні сторінки на мобілці
-const sheetOpen = ref(true)
 </script>
 
 <template>
-  <!--
-    DESKTOP: стандартний layout з auth.vue (2 колонки)
-    MOBILE:  фонове зображення + Sheet знизу
-
-    Ключ: на мобілці ховаємо десктопний контент і показуємо Sheet.
-    На десктопі — навпаки.
-  -->
-
-  <!-- ── Мобільний варіант (< md) ─────────────────────────────────────────── -->
-  <div class="md:hidden">
-    <!-- Фон на весь екран -->
+  <template v-if="isMobile">
     <div class="fixed inset-0 -z-10">
       <img
         src="~/assets/images/auth-background.png"
         alt=""
         class="w-full h-full object-cover"
       >
-      <!-- Легкий оверлей для читабельності -->
-      <div class="absolute inset-0 bg-black/30" />
+      <div class="absolute inset-0 bg-black/40" />
     </div>
 
-    <!-- Логотип поверх фото -->
-    <header class="flex items-center justify-center pt-12 pb-6">
-      <h1 class="text-white text-2xl font-bold tracking-tight">Zatyshok</h1>
-    </header>
-
-    <!-- Sheet — "картка" знизу, яка не закривається -->
-    <Sheet :open="sheetOpen" @update:open="sheetOpen = $event">
+    <Sheet :open="true" :modal="false" @update:open="() => {}" @close="goBack">
       <SheetContent
         side="bottom"
-        class="rounded-t-3xl px-6 pt-6 pb-10 h-auto max-h-[88svh] overflow-y-auto"
-        :show-close-button="false"
+        class="rounded-t-3xl px-6 pt-5 pb-10 h-auto max-h-[88svh] overflow-y-auto border-0 shadow-2xl"
+
       >
-        <!-- "Ручка" для Sheet -->
-        <div class="mx-auto mb-4 w-10 h-1 rounded-full bg-muted-foreground/30" />
+        <div class="mx-auto mb-5 w-10 h-1 rounded-full bg-muted-foreground/25" />
 
-        <!-- Прогрес бар -->
-        <Progress :model-value="progress" class="mb-6" />
+        <Progress :model-value="progress" class="mb-5" />
 
-        <!-- Заголовок кроку -->
-        <SheetHeader class="p-0 mb-2">
+        <SheetHeader class="p-0 mb-1 text-left">
           <SheetTitle class="text-2xl font-bold">{{ stepMeta.title }}</SheetTitle>
           <SheetDescription>{{ stepMeta.subtitle }}</SheetDescription>
         </SheetHeader>
 
-        <!-- Компоненти кроків -->
-        <StepPhone v-if="currentStep === 1" @next="onPhoneNext" />
-        <StepOtp v-else-if="currentStep === 2" :phone="formData.phone" @next="onOtpNext" @back="goBack" />
+        <AuthOnboardingStepPhone
+          v-if="currentStep === 1"
+          @next="onPhoneNext"
+        />
+        <AuthOnboardingStepOtp
+          v-else-if="currentStep === 2"
+          :phone="formData.phone"
+          @next="onOtpNext"
+          @back="goBack"
+        />
       </SheetContent>
     </Sheet>
-  </div>
+  </template>
 
-  <!-- ── Десктопний варіант (>= md) ───────────────────────────────────────── -->
-  <!--
-    auth layout вже робить split (2 колонки).
-    Цей slot рендериться в ліву колонку layout-у.
-    Тому тут просто контент без додаткових оберток.
-  -->
-  <div class="hidden md:block">
-    <!-- Прогрес бар -->
+  <template v-else>
     <Progress :model-value="progress" class="mb-6" />
 
-    <!-- Заголовок -->
-    <section class="flex flex-col gap-1">
+    <section class="mb-8">
       <h2 class="text-3xl font-bold">{{ stepMeta.title }}</h2>
-      <p class="text-muted-foreground">{{ stepMeta.subtitle }}</p>
+      <p class="text-muted-foreground mt-1">{{ stepMeta.subtitle }}</p>
     </section>
 
-    <!-- Кроки -->
-    <StepPhone v-if="currentStep === 1" @next="onPhoneNext" />
-    <StepOtp v-else-if="currentStep === 2" :phone="formData.phone" @next="onOtpNext" @back="goBack" />
-  </div>
+    <AuthOnboardingStepPhone
+      v-if="currentStep === 1"
+      @next="onPhoneNext"
+    />
+    <AuthOnboardingStepOtp
+      v-else-if="currentStep === 2"
+      :phone="formData.phone"
+      @next="onOtpNext"
+      @back="goBack"
+    />
+  </template>
 </template>
