@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import {useIsMobile} from '~/utils/useIsMobile';
-
+import {authService} from "~/services/auth.service";
+import type {CreateProperty, UserRole} from "~/types/models";
+import {propertyService} from "~/services/property.service";
 
 const {isMobile} = useIsMobile()
+const toast = useToast();
+
+const otpStepRef = ref<InstanceType<typeof import('~/components/auth/onboarding/step-otp.vue')>>()
 
 const currentStep = ref(1)
 const totalSteps = 3
@@ -10,8 +15,6 @@ const totalSteps = 3
 const formData = reactive({
   phone: '',
   code: '',
-  name: '',
-  email: '',
 })
 
 const progress = computed(() => (currentStep.value / totalSteps) * 100)
@@ -19,24 +22,67 @@ const progress = computed(() => (currentStep.value / totalSteps) * 100)
 const stepMeta = computed(() => ({
   1: { title: 'Реєстрація', subtitle: 'Введіть номер телефону' },
   2: { title: 'Підтвердження', subtitle: 'Введіть код з SMS' },
-  3: { title: 'Профіль', subtitle: 'Розкажіть про себе' },
+  3: { title: 'Ваш об`єкт', subtitle: "Створіть об'єкт та перейдемо до налаштувань"  },
 }[currentStep.value] ?? { title: '', subtitle: '' }))
 
-function onPhoneNext(phone: string) {
+async function onPhoneNext(phone: string) {
   formData.phone = phone
-  currentStep.value = 2
+
+  try {
+    const res = await authService.sendOtp({
+      phone: phone
+    })
+
+    if (res) {
+      currentStep.value = 2
+      toast.success("Відправлено!", "Код для підтвердження відправлено на номер " + phone);
+    }
+
+  } catch (e) {
+    toast.error("Помилка", e.message);
+  }
 }
 
-function onOtpNext(code: string) {
+async function onOtpNext(code: string) {
   formData.code = code
-  currentStep.value = 3
+  try {
+    await authService.verifyOtp({
+      phone: formData.phone,
+      code: code,
+      // role: 'HOST' as UserRole,
+    })
+
+    currentStep.value = 3
+
+  } catch (e) {
+    toast.error("Помилка", e.message);
+  }
 }
 
-async function onProfileSubmit(values: { name: string; email?: string }) {
-  formData.name = values.name
-  formData.email = values.email ?? ''
-  console.log('Реєстрація завершена:', formData)
-  await navigateTo('/')
+async function onResendOtp() {
+  try {
+    const res = await authService.sendOtp({
+      phone: formData.phone
+    })
+
+    if (res) {
+      toast.success("Відправлено!", "Новий код відправлено на номер " + formData.phone);
+      otpStepRef.value?.resetTimer()
+    }
+
+  } catch (e) {
+    toast.error("Помилка", e.message);
+  }
+}
+
+async function onCreateProperty(data: CreateProperty) {
+  try {
+    await propertyService.create(data)
+    await navigateTo(`/admin/${data.slug}/setting`)
+
+  } catch (e) {
+    toast.error("Помилка", e.message);
+  }
 }
 
 function goBack() {
@@ -72,13 +118,16 @@ function goBack() {
 
         <AuthOnboardingStepPhone
           v-if="currentStep === 1"
+          @send-otp="onPhoneNext"
           @next="onPhoneNext"
         />
         <AuthOnboardingStepOtp
+          ref="otpStepRef"
           v-else-if="currentStep === 2"
           :phone="formData.phone"
           @next="onOtpNext"
           @back="goBack"
+          @send-otp="onResendOtp"
         />
       </SheetContent>
     </Sheet>
@@ -94,13 +143,18 @@ function goBack() {
 
     <AuthOnboardingStepPhone
       v-if="currentStep === 1"
+      @send-otp="onPhoneNext"
       @next="onPhoneNext"
     />
     <AuthOnboardingStepOtp
+      ref="otpStepRef"
       v-else-if="currentStep === 2"
       :phone="formData.phone"
       @next="onOtpNext"
       @back="goBack"
+      @send-otp="onResendOtp"
     />
+
+    <AuthOnboardingStepProperty v-else-if="currentStep === 3" @next="onCreateProperty" @back="goBack"/>
   </template>
 </template>

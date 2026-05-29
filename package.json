@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.17.0",
+    "@nuxt/icon": "2.2.2",
+    "@nuxt/kit": "^3.0.0 || ^4.0.0",
     "@nuxtjs/tailwindcss": "7.0.0-beta.1",
     "@pinia/nuxt": "0.11.3",
     "@tanstack/vue-table": "^8.21.3",
@@ -20,6 +22,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "nuxt": "^4.4.6",
+    "nuxt-notify": "1.1.4",
     "pinia": "^3.0.4",
     "radix-vue": "^1.9.17",
     "reka-ui": "^2.9.8",

@@ -29,3 +29,12 @@ export const otpSchema = toTypedSchema(
   }),
 )
 
+export const authPropertySchema = toTypedSchema(
+    z.object({
+        name: z
+            .string()
+            .min(3, 'Мінімальна довжина 3 символи'),
+        slug: z
+            .string()
+    })
+)

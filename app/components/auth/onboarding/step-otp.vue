@@ -2,14 +2,42 @@
 import { useForm } from 'vee-validate'
 import { otpSchema } from '~/validators/auth'
 
+const toast = useToast();
+
+const timer = ref(60)
+let intervalId: ReturnType<typeof setInterval> | null = null
+
 const props = defineProps<{
   phone: string
 }>()
 
 const emit = defineEmits<{
   next: [code: string]
-  back: []
+  back: [],
+  sendOtp: [],
 }>()
+
+function startTimer() {
+  if (intervalId) {
+    clearInterval(intervalId)
+  }
+  timer.value = 60
+  intervalId = setInterval(() => {
+    timer.value--
+    if (timer.value === 0) {
+      clearInterval(intervalId!)
+      intervalId = null
+    }
+  }, 1000)
+}
+
+function resetTimer() {
+  startTimer()
+}
+
+defineExpose({
+  resetTimer
+})
 
 const { handleSubmit, isSubmitting, setFieldValue } = useForm({
   validationSchema: otpSchema,
@@ -23,6 +51,10 @@ const onSubmit = handleSubmit((values) => {
 function onOtpComplete(value: string) {
   setFieldValue('code', value)
 }
+
+onMounted(() => {
+  startTimer()
+})
 </script>
 
 <template>
@@ -48,6 +80,16 @@ function onOtpComplete(value: string) {
         </FormControl>
         <FormMessage />
       </FormItem>
+
+      <div v-if="timer > 0" class="text-sm text-muted-foreground">
+        Повторно відправити через {{ timer }} секунд
+      </div>
+
+      <div v-else>
+        <Button type="button" variant="ghost" @click="emit('sendOtp')">
+          Надіслати код
+        </Button>
+      </div>
     </FormField>
 
     <div class="flex gap-3">
