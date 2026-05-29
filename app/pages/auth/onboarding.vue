@@ -1,83 +1,125 @@
 <script setup lang="ts">
-import {InputOTP} from "~/components/ui/input-otp";
 
 const currentStep = ref(1)
 const totalSteps = 3
 
-const progress = computed(() => (currentStep.value / totalSteps) * 100)
-
-const stepInfo = computed(() => {
-  switch (currentStep.value) {
-    case 1: return { title: 'Реєстрація', subtitle: 'Заповніть форму для реєстрації' }
-    case 2: return { title: 'Підтвердження', subtitle: 'Введіть код з SMS' }
-    case 3: return { title: 'Профіль', subtitle: 'Розкажіть про себе' }
-    default: return { title: '', subtitle: '' }
-  }
+// Дані, що накопичуються між кроками
+const formData = reactive({
+  phone: '',
+  code: '',
+  name: '',
+  email: '',
 })
 
-const nextStep = () => {
-  if (currentStep.value < totalSteps) currentStep.value++
+const progress = computed(() => (currentStep.value / totalSteps) * 100)
+
+const stepMeta = computed(() => ({
+  1: { title: 'Реєстрація', subtitle: 'Введіть номер телефону' },
+  2: { title: 'Підтвердження', subtitle: 'Введіть код з SMS' },
+  3: { title: 'Профіль', subtitle: 'Розкажіть про себе' },
+}[currentStep.value] ?? { title: '', subtitle: '' }))
+
+// ── Обробники подій від дочірніх кроків ─────────────────────────────────────
+
+function onPhoneNext(phone: string) {
+  formData.phone = phone
+  currentStep.value = 2
 }
 
-const prevStep = () => {
+function onOtpNext(code: string) {
+  formData.code = code
+  currentStep.value = 3
+}
+
+async function onProfileSubmit(values: { name: string; email?: string }) {
+  formData.name = values.name
+  formData.email = values.email ?? ''
+
+  // TODO: виклик API реєстрації
+  console.log('Реєстрація завершена:', formData)
+  await navigateTo('/')
+}
+
+function goBack() {
   if (currentStep.value > 1) currentStep.value--
 }
+
+// ── Контроль Sheet (тільки для мобільних) ────────────────────────────────────
+// Sheet відкривається одразу при завантаженні сторінки на мобілці
+const sheetOpen = ref(true)
 </script>
 
 <template>
-  <Progress :model-value="progress" />
+  <!--
+    DESKTOP: стандартний layout з auth.vue (2 колонки)
+    MOBILE:  фонове зображення + Sheet знизу
 
-  <section class="flex flex-col gap-4 mt-4">
-    <h2 class="text-4xl font-bold">{{ stepInfo.title }}</h2>
-    <p class="text-gray-500">{{ stepInfo.subtitle }}</p>
-  </section>
+    Ключ: на мобілці ховаємо десктопний контент і показуємо Sheet.
+    На десктопі — навпаки.
+  -->
 
-  <Form v-if="currentStep === 1" class="mt-12 ">
-    <FormField v-slot="{ componentField }" name="username">
-      <FormLabel class="text-gray-500">Phone</FormLabel>
-      <FormControl class="mt-4">
-        <Input  type="tel" placeholder="+380 000 00 00" v-bind="componentField" />
-      </FormControl>
-    </FormField>
-
-    <div class="flex items-start gap-2 mt-4">
-      <Checkbox />
-      <div class="grid gap-2">
-        <Label>Я погоджуюсь з <span>Політикою конфіденційності</span></Label>
-        <p class="text-muted-foreground text-sm">Натискаючи цю кнопку, ви підтверджуєте свою згоду з Політикою конфіденційності</p>
-      </div>
+  <!-- ── Мобільний варіант (< md) ─────────────────────────────────────────── -->
+  <div class="md:hidden">
+    <!-- Фон на весь екран -->
+    <div class="fixed inset-0 -z-10">
+      <img
+        src="~/assets/images/auth-background.png"
+        alt=""
+        class="w-full h-full object-cover"
+      >
+      <!-- Легкий оверлей для читабельності -->
+      <div class="absolute inset-0 bg-black/30" />
     </div>
-    <Button @click.prevent="nextStep" size="lg" class="mt-4 w-full" type="button">Далі</Button>
 
-    <div class="flex items-center flex-col mt-4">
-      <Label class="text-gray-500">У вас є аккаунт?</Label>
-      <Button variant="link">Увійти</Button>
-    </div>
-  </Form>
+    <!-- Логотип поверх фото -->
+    <header class="flex items-center justify-center pt-12 pb-6">
+      <h1 class="text-white text-2xl font-bold tracking-tight">Zatyshok</h1>
+    </header>
 
-  <Form v-else-if="currentStep === 2" class="mt-12">
-    <FormField name="code" >
-      <FormLabel class="text-gray-500">Код підтвердження</FormLabel>
-      <FormControl class="mt-4">
-        <InputOTP :maxlength="4">
-          <InputOTPGroup>
-            <InputOTPSlot :index="0" />
-            <InputOTPSlot :index="1" />
-            <InputOTPSlot :index="2" />
-            <InputOTPSlot :index="3" />
-          </InputOTPGroup>
-        </InputOTP>
-      </FormControl>
-    </FormField>
-    <div class="flex gap-2 mt-4">
-      <Button variant="outline" @click.prevent="prevStep">Назад</Button>
-      <Button @click.prevent="nextStep" size="lg" class="flex-1">Далі</Button>
-    </div>
-  </Form>
+    <!-- Sheet — "картка" знизу, яка не закривається -->
+    <Sheet :open="sheetOpen" @update:open="sheetOpen = $event">
+      <SheetContent
+        side="bottom"
+        class="rounded-t-3xl px-6 pt-6 pb-10 h-auto max-h-[88svh] overflow-y-auto"
+        :show-close-button="false"
+      >
+        <!-- "Ручка" для Sheet -->
+        <div class="mx-auto mb-4 w-10 h-1 rounded-full bg-muted-foreground/30" />
 
+        <!-- Прогрес бар -->
+        <Progress :model-value="progress" class="mb-6" />
 
+        <!-- Заголовок кроку -->
+        <SheetHeader class="p-0 mb-2">
+          <SheetTitle class="text-2xl font-bold">{{ stepMeta.title }}</SheetTitle>
+          <SheetDescription>{{ stepMeta.subtitle }}</SheetDescription>
+        </SheetHeader>
+
+        <!-- Компоненти кроків -->
+        <StepPhone v-if="currentStep === 1" @next="onPhoneNext" />
+        <StepOtp v-else-if="currentStep === 2" :phone="formData.phone" @next="onOtpNext" @back="goBack" />
+      </SheetContent>
+    </Sheet>
+  </div>
+
+  <!-- ── Десктопний варіант (>= md) ───────────────────────────────────────── -->
+  <!--
+    auth layout вже робить split (2 колонки).
+    Цей slot рендериться в ліву колонку layout-у.
+    Тому тут просто контент без додаткових оберток.
+  -->
+  <div class="hidden md:block">
+    <!-- Прогрес бар -->
+    <Progress :model-value="progress" class="mb-6" />
+
+    <!-- Заголовок -->
+    <section class="flex flex-col gap-1">
+      <h2 class="text-3xl font-bold">{{ stepMeta.title }}</h2>
+      <p class="text-muted-foreground">{{ stepMeta.subtitle }}</p>
+    </section>
+
+    <!-- Кроки -->
+    <StepPhone v-if="currentStep === 1" @next="onPhoneNext" />
+    <StepOtp v-else-if="currentStep === 2" :phone="formData.phone" @next="onOtpNext" @back="goBack" />
+  </div>
 </template>
-
-<style scoped>
-
-</style>
