@@ -1,29 +1,22 @@
 <script setup lang="ts">
-import {useIsMobile} from '~/utils/useIsMobile';
+import {useIsMobile} from "~/utils/useIsMobile";
 import {authService} from "~/services/auth.service";
-import type {CreateProperty, UserRole} from "~/types/models";
-import {propertyService} from "~/services/property.service";
 
 const {isMobile} = useIsMobile()
-const toast = useToast();
-
-const otpStepRef = ref<InstanceType<typeof import('~/components/auth/onboarding/step-otp.vue')>>()
-
 const currentStep = ref(1)
-const totalSteps = 3
+const totalSteps = 2
+const toast = useToast();
+const otpStepRef = ref<InstanceType<typeof import('~/components/auth/onboarding/step-otp.vue')>>()
 
 const formData = reactive({
   phone: '',
   code: '',
 })
 
-const progress = computed(() => (currentStep.value / totalSteps) * 100)
-
-const stepMeta = computed(() => ({
-  1: { title: 'Реєстрація', subtitle: 'Введіть номер телефону' },
-  2: { title: 'Підтвердження', subtitle: 'Введіть код з SMS' },
-  3: { title: 'Ваш об`єкт', subtitle: "Створіть об'єкт та перейдемо до налаштувань"  },
-}[currentStep.value] ?? { title: '', subtitle: '' }))
+const stepMeta = ref({
+  title: 'Вхід',
+  subtitle: 'Введіть номер телефону',
+})
 
 async function onPhoneNext(phone: string) {
   formData.phone = phone
@@ -75,16 +68,6 @@ async function onResendOtp() {
   }
 }
 
-async function onCreateProperty(data: CreateProperty) {
-  try {
-    await propertyService.create(data)
-    await navigateTo(`/admin/${data.slug}/setting`)
-
-  } catch (e) {
-    toast.error("Помилка", e.message);
-  }
-}
-
 function goBack() {
   if (currentStep.value > 1) currentStep.value--
 }
@@ -100,43 +83,9 @@ function goBack() {
       >
       <div class="absolute inset-0 bg-black/40" />
     </div>
-
-    <Sheet :open="true" :modal="false" @update:open="() => {}" @close="goBack">
-      <SheetContent
-        side="bottom"
-        class="rounded-t-3xl px-6 pt-5 pb-10 h-auto max-h-[88svh] overflow-y-auto border-0 shadow-2xl"
-
-      >
-        <div class="mx-auto mb-5 w-10 h-1 rounded-full bg-muted-foreground/25" />
-
-        <Progress :model-value="progress" class="mb-5" />
-
-        <SheetHeader class="p-0 mb-1 text-left">
-          <SheetTitle class="text-2xl font-bold">{{ stepMeta.title }}</SheetTitle>
-          <SheetDescription>{{ stepMeta.subtitle }}</SheetDescription>
-        </SheetHeader>
-
-        <AuthOnboardingStepPhone
-          v-if="currentStep === 1"
-          @send-otp="onPhoneNext"
-          @next="onPhoneNext"
-          :is-show-privacy-policy="true"
-        />
-        <AuthOnboardingStepOtp
-          ref="otpStepRef"
-          v-else-if="currentStep === 2"
-          :phone="formData.phone"
-          @next="onOtpNext"
-          @back="goBack"
-          @send-otp="onResendOtp"
-        />
-      </SheetContent>
-    </Sheet>
   </template>
 
   <template v-else>
-    <Progress :model-value="progress" class="mb-6" />
-
     <section class="mb-8">
       <h2 class="text-3xl font-bold">{{ stepMeta.title }}</h2>
       <p class="text-muted-foreground mt-1">{{ stepMeta.subtitle }}</p>
@@ -146,7 +95,6 @@ function goBack() {
       v-if="currentStep === 1"
       @send-otp="onPhoneNext"
       @next="onPhoneNext"
-      :is-show-privacy-policy="true"
     />
     <AuthOnboardingStepOtp
       ref="otpStepRef"
@@ -156,7 +104,9 @@ function goBack() {
       @back="goBack"
       @send-otp="onResendOtp"
     />
-
-    <AuthOnboardingStepProperty v-else-if="currentStep === 3" @next="onCreateProperty" @back="goBack"/>
   </template>
 </template>
+
+<style scoped>
+
+</style>

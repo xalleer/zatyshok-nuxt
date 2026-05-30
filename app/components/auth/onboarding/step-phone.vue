@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { useForm } from 'vee-validate'
-import { phoneSchema } from '~/validators/auth'
+import {phoneLoginSchema, phoneOnboardingSchema} from '~/validators/auth'
+
+const props = defineProps<{
+  isShowPrivacyPolicy?: boolean
+}>()
+
 
 const emit = defineEmits<{
   next: [phone: string]
 }>()
 
 const { handleSubmit, isSubmitting } = useForm({
-  validationSchema: phoneSchema,
+  validationSchema: props.isShowPrivacyPolicy ? phoneOnboardingSchema : phoneLoginSchema,
   initialValues: {
     phone: '',
-    acceptPolicy: false,
   },
 })
 
@@ -36,7 +40,7 @@ const onSubmit = handleSubmit((values) => {
       </FormItem>
     </FormField>
 
-    <FormField v-slot="{ value, handleChange }" name="acceptPolicy" type="checkbox">
+    <FormField v-slot="{ value, handleChange }" name="acceptPolicy" type="checkbox" v-if="isShowPrivacyPolicy">
       <FormItem class="flex flex-row items-start gap-3 space-y-0">
         <FormControl>
           <Checkbox
@@ -60,10 +64,17 @@ const onSubmit = handleSubmit((values) => {
       Далі
     </Button>
 
-    <p class="text-center text-sm text-muted-foreground">
+    <p class="text-center text-sm text-muted-foreground" v-if="isShowPrivacyPolicy">
       Вже є акаунт?
       <NuxtLink to="/auth/login" class="text-primary font-medium hover:underline">
         Увійти
+      </NuxtLink>
+    </p>
+
+    <p class="text-center text-sm text-muted-foreground" v-else>
+      Немає аккаунту?
+      <NuxtLink to="/auth/onboarding" class="text-primary font-medium hover:underline">
+        Зареєструватись
       </NuxtLink>
     </p>
 

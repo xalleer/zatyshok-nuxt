@@ -1,7 +1,7 @@
 import type {ResponseException} from "~/types/api";
 
 export const api = $fetch.create({
-    baseURL: 'http://localhost:3000/api',
+    baseURL: 'https://zatyshok-backend.fly.dev/api/',
     credentials: 'include',
     onResponseError({ response }) {
         const error = response._data as ResponseException

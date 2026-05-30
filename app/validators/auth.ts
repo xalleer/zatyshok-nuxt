@@ -2,7 +2,7 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 
 // ── Крок 1: телефон + згода ──────────────────────────────────────────────────
-export const phoneSchema = toTypedSchema(
+export const phoneOnboardingSchema = toTypedSchema(
   z.object({
     phone: z
       .string()
@@ -17,6 +17,18 @@ export const phoneSchema = toTypedSchema(
         message: 'Необхідно прийняти Політику конфіденційності',
       }),
   }),
+)
+
+export const phoneLoginSchema = toTypedSchema(
+  z.object({
+    phone: z
+      .string()
+      .min(1, 'Введіть номер телефону')
+      .regex(
+        /^\+?[0-9\s\-().]{7,15}$/,
+        'Невірний формат номера телефону',
+      ),
+  })
 )
 
 // ── Крок 2: OTP ──────────────────────────────────────────────────────────────
