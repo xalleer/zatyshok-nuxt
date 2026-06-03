@@ -45,7 +45,7 @@ async function onOtpNext(code: string) {
       // role: 'HOST' as UserRole,
     })
 
-    currentStep.value = 3
+    navigateTo('/admin')
 
   } catch (e) {
     toast.error("Помилка", e.message);

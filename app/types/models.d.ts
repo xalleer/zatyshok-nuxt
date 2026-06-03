@@ -4,6 +4,11 @@ export enum UserRole {
     HOST = 'HOST'
 }
 
+export enum Policy {
+    FLEXIBLE = 'FLEXIBLE',
+    STRICT = 'STRICT'
+}
+
 //AUTH
 
 export interface SendOtp {
@@ -30,4 +35,34 @@ export interface User {
 export interface CreateProperty {
     name: string
     slug: string
+}
+
+export interface UpdateProperty extends CreateProperty {
+    description: string
+    city: string
+    address: string
+    latitude: string
+    longitude: string
+    policy: Policy
+    isActive: boolean
+}
+
+export interface Property extends CreateProperty {
+    id: string
+    description: string
+    coverImage: string
+    images: string []
+    city: string
+    address: string
+    latitude: string
+    longitude: string
+    policy: Policy
+    isActive: boolean
+    hostId: string
+    createdAt: string
+    updatedAt: string
+    rating: {
+        description: string
+    }
+    reviewCount: number
 }

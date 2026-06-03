@@ -49,7 +49,7 @@ async function onOtpNext(code: string) {
     await authService.verifyOtp({
       phone: formData.phone,
       code: code,
-      // role: 'HOST' as UserRole,
+      role: 'HOST' as UserRole,
     })
 
     currentStep.value = 3
@@ -78,7 +78,7 @@ async function onResendOtp() {
 async function onCreateProperty(data: CreateProperty) {
   try {
     await propertyService.create(data)
-    await navigateTo(`/admin/${data.slug}/setting`)
+    await navigateTo(`/admin`)
 
   } catch (e) {
     toast.error("Помилка", e.message);

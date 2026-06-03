@@ -38,6 +38,7 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     'shadcn-nuxt',
     '@vee-validate/nuxt',
-    'nuxt-notify'
+    'nuxt-notify',
+      'pinia-plugin-persistedstate/nuxt'
   ]
 })

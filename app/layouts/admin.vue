@@ -3,9 +3,12 @@
 </script>
 
 <template>
-<div>
-  <slot/>
-</div>
+  <SidebarProvider>
+    <AppSidebar />
+    <main class="flex-1">
+      <slot />
+    </main>
+  </SidebarProvider>
 </template>
 
 <style scoped>
